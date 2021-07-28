@@ -6,7 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using Newtonsoft.Json;
 
-/// dotnet run -- 4 ..\output ..\croplist.json
+/// dotnet run -- 1 ..\tex1_512x256_B20814E2D6573DFE_0 ..\output
 
 namespace csharp {
     class Program {
