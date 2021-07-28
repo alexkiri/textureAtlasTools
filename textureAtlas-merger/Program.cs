@@ -4,9 +4,10 @@ using System.IO;
 using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using Newtonsoft.Json;
 
-/// dotnet run -- 1 ..\tex1_512x256_B20814E2D6573DFE_0 ..\output
+/// dotnet run -- 4 ..\tex1_512x256_B20814E2D6573DFE_0 ..\output
 
 namespace csharp {
     class Program {
@@ -23,9 +24,21 @@ namespace csharp {
                 return;
             }
 
+            var originalTexturePath = $"{args[1]}.png";
+            if (File.Exists(originalTexturePath) == false) { Console.WriteLine($"Invalid filename. {originalTexturePath} missing"); return; }
+            var originalTexture = Image.Load(originalTexturePath); // throws ¯\_(ツ)_/¯
+
             var texturePath = $"{args[1]}_sliced.png";
             if (File.Exists(texturePath) == false) { Console.WriteLine($"Invalid filename. {texturePath} missing"); return; }
             var texture = Image.Load(texturePath); // throws ¯\_(ツ)_/¯
+            var resampler = new NearestNeighborResampler();
+            if (multiplier * originalTexture.Size().Width > texture.Size().Width) {
+                Console.WriteLine($"sliced texture not upscaled. resizing with {multiplier}x multiplier");
+                texture.Mutate(context => context.Resize(
+                    multiplier * originalTexture.Size().Width,
+                    multiplier * originalTexture.Size().Height,
+                    resampler));
+            }
             
             var parametersPath = $"{args[1]}.json";
             if (File.Exists(parametersPath) == false) { Console.WriteLine($"Invalid filename. {parametersPath} missing"); return; }
@@ -33,8 +46,16 @@ namespace csharp {
             var parameters = JsonConvert.DeserializeObject<Rectangle[]>(parametersString);
             
             foreach (var parameter in parameters) {
-                var upscaledImagePath = $"{args[2]}\\{GetSimpleFilename(parameter)}.png";
+                var simpleFilename = $"{GetSimpleFilename(parameter)}.png";
+                var upscaledImagePath = $"{args[2]}\\{simpleFilename}";
                 var upscaledImage = Image.Load(upscaledImagePath);
+                if (multiplier * parameter.Width > upscaledImage.Size().Width) {
+                    Console.WriteLine($"{simpleFilename} texture not upscaled. resizing with {multiplier}x multiplier");
+                    upscaledImage.Mutate(context => context.Resize(
+                        multiplier * parameter.Width,
+                        multiplier * parameter.Height,
+                        resampler));
+                }
                 var upscaledImageLocation = new Point(multiplier * parameter.X, multiplier * parameter.Y);
                 texture.Mutate(context => context.DrawImage(
                     upscaledImage,

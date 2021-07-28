@@ -7,7 +7,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Newtonsoft.Json;
 
-/// dotnet run -- ..\tex1_512x256_B20814E2D6573DFE_0 ..\outputt
+/// dotnet run -- ..\tex1_512x256_B20814E2D6573DFE_0 ..\output
 
 namespace csharp {
     class Program {
