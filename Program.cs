@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Security.Cryptography;
 using System.IO;
-using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using Newtonsoft.Json;
-
-/// dotnet run -- split ..\tex1_512x256_B20814E2D6573DFE_0
 
 namespace TextureAtlasTools {
     class Program {
@@ -31,7 +27,7 @@ namespace TextureAtlasTools {
                     if (args.Length < 3) {
                         Console.WriteLine("Missing scale multiplier parameter");
                     } else {
-                        var multiplier = int.Parse(args[2]); // throws ¯\_(ツ)_/¯
+                        var multiplier = int.Parse(args[2]);
                         MergeLogic(baseFilename, multiplier);
                     }
                 } else {
@@ -45,11 +41,11 @@ namespace TextureAtlasTools {
         static void SplitLogic(string baseFilename) {
             var texturePath = $"{baseFilename}.png";
             if (File.Exists(texturePath) == false) { Console.WriteLine($"Invalid filename. {texturePath} missing"); return; }
-            var texture = Image.Load(texturePath); // throws ¯\_(ツ)_/¯
+            var texture = Image.Load(texturePath);
 
             var parametersPath = $"{baseFilename}.json";
             if (File.Exists(parametersPath) == false) { Console.WriteLine($"Invalid filename. {parametersPath} missing"); return; }
-            var parametersString = File.ReadAllText(parametersPath); // throws ¯\_(ツ)_/¯ 
+            var parametersString = File.ReadAllText(parametersPath);
             var parameters = JsonConvert.DeserializeObject<Rectangle[]>(parametersString);
             
             System.IO.Directory.CreateDirectory(baseFilename);
@@ -77,11 +73,11 @@ namespace TextureAtlasTools {
 
             var originalTexturePath = $"{baseFilename}.png";
             if (File.Exists(originalTexturePath) == false) { Console.WriteLine($"Invalid filename. {originalTexturePath} missing"); return; }
-            var originalTexture = Image.Load(originalTexturePath); // throws ¯\_(ツ)_/¯
+            var originalTexture = Image.Load(originalTexturePath);
 
             var texturePath = $"{baseFilename}_sliced.png";
             if (File.Exists(texturePath) == false) { Console.WriteLine($"Invalid filename. {texturePath} missing"); return; }
-            var texture = Image.Load(texturePath); // throws ¯\_(ツ)_/¯
+            var texture = Image.Load(texturePath);
             var resampler = new NearestNeighborResampler();
             if (multiplier * originalTexture.Size().Width > texture.Size().Width) {
                 Console.WriteLine($"sliced texture not upscaled. resizing with {multiplier}x multiplier");
@@ -93,7 +89,7 @@ namespace TextureAtlasTools {
             
             var parametersPath = $"{baseFilename}.json";
             if (File.Exists(parametersPath) == false) { Console.WriteLine($"Invalid filename. {parametersPath} missing"); return; }
-            var parametersString = File.ReadAllText(parametersPath); // throws ¯\_(ツ)_/¯
+            var parametersString = File.ReadAllText(parametersPath);
             var parameters = JsonConvert.DeserializeObject<Rectangle[]>(parametersString);
             
             foreach (var parameter in parameters) {
