@@ -7,27 +7,29 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Newtonsoft.Json;
 
-/// dotnet run -- ..\tex1_512x256_B20814E2D6573DFE_0.png ..\croplist.json
+/// dotnet run -- ..\tex1_512x256_B20814E2D6573DFE_0 ..\outputt
 
 namespace csharp {
     class Program {
         static void Main(string[] args) {
-            Console.WriteLine(string.Join(' ', args));
             if (args.Length < 2) {
-                Console.WriteLine("Invalid arguments. Please specify both the texture .png file and the parameters .json file");
-                Console.WriteLine("Example arguments: ..\\tex1_512x256_B20814E2D6573DFE_0.png ..\\croplist.json");
+                Console.WriteLine("Invalid arguments. Please specify a base filename (without extension) followed by the output folder. Both the texture .png file and the parameters .json file should be at the same place and have the same name, but different extensions.");
+                Console.WriteLine("Example arguments: ..\\tex1_512x256_B20814E2D6573DFE_0 ..\\output");
                 return;
             }
 
-            var texture = Image.Load(args[0]);
-            var parametersString = File.ReadAllText(args[1]);
+            var texturePath = $"{args[0]}.png";
+            if (File.Exists(texturePath) == false) { Console.WriteLine($"Invalid filename. {texturePath} missing"); return; }
+            var texture = Image.Load(texturePath); // throws ¯\_(ツ)_/¯
+
+            var parametersPath = $"{args[0]}.json";
+            if (File.Exists(parametersPath) == false) { Console.WriteLine($"Invalid filename. {parametersPath} missing"); return; }
+            var parametersString = File.ReadAllText(parametersPath); // throws ¯\_(ツ)_/¯ 
             var parameters = JsonConvert.DeserializeObject<Rectangle[]>(parametersString);
             
-            System.IO.Directory.CreateDirectory("..\\output");
+            System.IO.Directory.CreateDirectory(args[1]);
             foreach (var parameter in parameters) {
-                Console.WriteLine(parameter.ToString());
                 var croppedImage = texture.Clone(context => context.Crop(parameter));
-                var resultPath = "..\\output\\" + GetSimpleFilename(parameter) + ".png";
                 var emptyImage = new Image<Rgba32>(parameter.Width, parameter.Height);
                 var location = new Point(parameter.X, parameter.Y);
                 texture.Mutate(context => context.DrawImage(
@@ -36,9 +38,10 @@ namespace csharp {
                     SixLabors.ImageSharp.PixelFormats.PixelColorBlendingMode.Normal,
                     SixLabors.ImageSharp.PixelFormats.PixelAlphaCompositionMode.Clear,
                     1.0f));
+                var resultPath = $"{args[1]}\\{GetSimpleFilename(parameter)}.png";
                 croppedImage.SaveAsPng(resultPath);
             }
-            texture.SaveAsPng("..\\output\\slicedImage.png");
+            texture.SaveAsPng($"{args[0]}_sliced.png");
         }
 
         public static string GetSimpleFilename(Rectangle rectangle) { 
