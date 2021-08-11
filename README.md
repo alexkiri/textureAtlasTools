@@ -10,6 +10,10 @@ The workflow would be something like this:
 - manually upscale all the resulting files with the correct transparency / seamless mode, including the `[basefilename]_sliced.png` from the previous step. it is important to use the same scale factor for all the files. you can leave some of the files unscaled (including the basefile), in this case they will be automatically scaled using nearest neighbor filtering
 - run the tool with the `merge` action; this will automatically add back the separated upscaled tiles to the upscaled texture atlas. `[basefilename]_final.png` will be created
 
+## Tips & tricks
+- the slices can have any suffix in the filename, such as `8x8@128x16-4x_UltraFArt_v3_Fine.png`; this filename will take precedence over the default `8x8@128x16.png`
+- there can be multiple upscaled versions; the last slice with the last alphabetical filename will be loaded
+
 ## TODO
 - [x] proper error handling
 - [x] code cleanup

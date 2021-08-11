@@ -92,30 +92,44 @@ namespace TextureAtlasTools {
             var parametersString = File.ReadAllText(parametersPath);
             var parameters = JsonConvert.DeserializeObject<Rectangle[]>(parametersString);
             
+            DirectoryInfo taskDirectory = new DirectoryInfo(baseFilename);
+
             foreach (var parameter in parameters) {
-                var simpleFilename = $"{GetSimpleFilename(parameter)}.png";
-                var upscaledImagePath = $"{baseFilename}\\{simpleFilename}";
-                var upscaledImage = Image.Load(upscaledImagePath);
-                if (multiplier * parameter.Width > upscaledImage.Size().Width) {
-                    Console.WriteLine($"{simpleFilename} texture not upscaled. resizing with {multiplier}x multiplier");
-                    upscaledImage.Mutate(context => context.Resize(
-                        multiplier * parameter.Width,
-                        multiplier * parameter.Height,
-                        resampler));
+                var wildcardImagePath = $"{GetSimpleFilename(parameter)}*.png";
+                FileInfo[] taskFiles = taskDirectory.GetFiles(wildcardImagePath);
+                if (taskFiles.Length >= 1) {
+                    if (taskFiles.Length != 1) {
+                        Console.WriteLine("multiple files!");
+                        foreach (var file in taskFiles) {
+                            Console.WriteLine($"{file.Name}");
+                        }
+                    }
+                    var simpleFilename = taskFiles[0].Name;
+                    var upscaledImagePath = $"{baseFilename}\\{simpleFilename}";
+                    var upscaledImage = Image.Load(upscaledImagePath);
+                    if (multiplier * parameter.Width > upscaledImage.Size().Width) {
+                        Console.WriteLine($"{simpleFilename} texture not upscaled. resizing with {multiplier}x multiplier");
+                        upscaledImage.Mutate(context => context.Resize(
+                            multiplier * parameter.Width,
+                            multiplier * parameter.Height,
+                            resampler));
+                    }
+                    var upscaledImageLocation = new Point(multiplier * parameter.X, multiplier * parameter.Y);
+                    texture.Mutate(context => context.DrawImage(
+                        upscaledImage,
+                        upscaledImageLocation,
+                        SixLabors.ImageSharp.PixelFormats.PixelColorBlendingMode.Normal,
+                        SixLabors.ImageSharp.PixelFormats.PixelAlphaCompositionMode.SrcOver,
+                        1.0f));
+                } else {
+                    Console.WriteLine($"Missing slice with name: {wildcardImagePath}. The final image will be incomplete");
                 }
-                var upscaledImageLocation = new Point(multiplier * parameter.X, multiplier * parameter.Y);
-                texture.Mutate(context => context.DrawImage(
-                    upscaledImage,
-                    upscaledImageLocation,
-                    SixLabors.ImageSharp.PixelFormats.PixelColorBlendingMode.Normal,
-                    SixLabors.ImageSharp.PixelFormats.PixelAlphaCompositionMode.SrcOver,
-                    1.0f));
             }
             texture.SaveAsPng($"{baseFilename}_final.png");
         }
 
         public static string GetSimpleFilename(Rectangle rectangle) {
-            return $"{rectangle.X.ToString()}-{rectangle.Y.ToString()}-{rectangle.Width.ToString()}-{rectangle.Height.ToString()}";
+            return $"{rectangle.Width.ToString()}x{rectangle.Height.ToString()}@{rectangle.X.ToString()}x{rectangle.Y.ToString()}";
         }
     }
 }
